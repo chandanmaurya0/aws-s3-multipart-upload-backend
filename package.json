@@ -1,0 +1,17 @@
+{
+  "name": "aws-s3-multipart-upload-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "local": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chandan Maurya",
+  "license": "ISC",
+  "description": "NodeJs API to generate AWS S3 multipart file upload ",
+  "dependencies": {
+    "aws-sdk": "^2.1602.0",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.0"
+  }
+}
