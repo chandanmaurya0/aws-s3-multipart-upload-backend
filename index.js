@@ -116,13 +116,19 @@ app.post("/generate-presigned-url", async (req, res) => {
 
 // Complete multipart upload
 app.post("/complete-multipart-upload", async (req, res) => {
+
+  // Req body
+  let fileName = req.body.fileName;
+  let uploadId = req.body.uploadId;
+  let parts = req.body.parts;
+
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: req.body.fileName,
-    UploadId: req.body.uploadId,
+    Key: fileName,
+    UploadId: uploadId,
 
     MultipartUpload: {
-      Parts: req.body.parts.map((part, index) => ({
+      Parts: parts.map((part, index) => ({
         ETag: part.etag,
         PartNumber: index + 1,
       })),
