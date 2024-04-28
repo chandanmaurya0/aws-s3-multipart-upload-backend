@@ -18,6 +18,31 @@ app.get("/", (req, res) => {
   return res.status(200).send("API is live! 🎉😎");
 });
 
+// Generate single presigned url to upload file
+app.post("/generate-single-presigned-url",async(req,res)=>{
+  try{
+
+    const fileName = req.body.fileName;
+    const fileType = req.body.fileType;
+
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: fileName,
+      Expires: 60, // Expires in 60 seconds
+      ContentType: fileType,
+      ACL: "bucket-owner-full-control",
+    };
+  
+    return s3.getSignedUrl("putObject", params);
+
+  }catch(err){
+    console.log(err)
+    return res.status(500).json({ error: "Error generating presigned URL" });
+  }
+   
+})
+
+
 // endpoint to start multipart upload
 app.post("/start-multipart-upload", async (req, res) => {
   const params = {
