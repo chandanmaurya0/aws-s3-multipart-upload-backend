@@ -9,9 +9,22 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// add body parser middleware for json 
+// add body parser middleware for json
 app.use(bodyParser.json());
 
+// Handle CORS error
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+    return res.status(200).json({});
+  }
+  next();
+});
 
 // AWS S3 config
 const s3 = new AWS.S3({
@@ -27,11 +40,9 @@ app.get("/", (req, res) => {
 });
 
 // Generate single presigned url to upload file
-app.post("/generate-single-presigned-url",async(req,res)=>{
-  try{
-
+app.post("/generate-single-presigned-url", async (req, res) => {
+  try {
     const fileName = req.body.fileName;
-
 
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -41,24 +52,19 @@ app.post("/generate-single-presigned-url",async(req,res)=>{
     };
 
     let url = await s3.getSignedUrlPromise("putObject", params);
-  
-    return res.status(200).json({ url });
 
-  }catch(err){
-    console.log(err)
+    return res.status(200).json({ url });
+  } catch (err) {
+    console.log(err);
     return res.status(500).json({ error: "Error generating presigned URL" });
   }
-   
-})
-
+});
 
 // endpoint to start multipart upload
 app.post("/start-multipart-upload", async (req, res) => {
-
   // initialization
   let fileName = req.body.fileName;
   let contentType = req.body.contentType;
-
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
