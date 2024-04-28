@@ -1,9 +1,17 @@
 const express = require("express");
 const AWS = require("aws-sdk");
+const bodyParser = require("body-parser");
+
+// get all the environment variable from .env file
+require("dotenv").config();
 
 // Create express app
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// add body parser middleware for json 
+app.use(bodyParser.json());
+
 
 // AWS S3 config
 const s3 = new AWS.S3({
@@ -23,17 +31,18 @@ app.post("/generate-single-presigned-url",async(req,res)=>{
   try{
 
     const fileName = req.body.fileName;
-    const fileType = req.body.fileType;
+
 
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: fileName,
       Expires: 60, // Expires in 60 seconds
-      ContentType: fileType,
       ACL: "bucket-owner-full-control",
     };
+
+    let url = await s3.getSignedUrlPromise("putObject", params);
   
-    return s3.getSignedUrl("putObject", params);
+    return res.status(200).json({ url });
 
   }catch(err){
     console.log(err)
@@ -45,13 +54,19 @@ app.post("/generate-single-presigned-url",async(req,res)=>{
 
 // endpoint to start multipart upload
 app.post("/start-multipart-upload", async (req, res) => {
+
+  // initialization
+  let fileName = req.body.fileName;
+  let contentType = req.body.contentType;
+
+
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: req.body.fileName,
+    Key: fileName,
   };
 
   // add extra params if content type is video
-  if (req.body.contentType == "VIDEO") {
+  if (contentType == "VIDEO") {
     params.ContentDisposition = "inline";
     params.ContentType = "video/mp4";
   }
